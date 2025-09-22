@@ -1,0 +1,9 @@
+*.env
+.env*
+*.db
+*.pyc
+*test.py
+misc/badges/*.png
+misc/mystery*
+backups/*
+temp/*
