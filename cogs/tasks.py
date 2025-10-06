@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 from core.database import Connection
-import core.common as Common
+from core.common import Time
 import os
 import shutil
 
@@ -23,7 +23,7 @@ class Tasks(commands.Cog):
 		code = 'TASK:BACKUP >'
 		print(f"{code} Running database backup...")
 		try:
-			now = Common.current_timestamp()
+			now = Time.current_timestamp()
 			for path, directories, files in os.walk("./backups"):
 				for file in files:
 					pointer = os.path.join(path, file)
@@ -42,7 +42,7 @@ class Tasks(commands.Cog):
 		code = 'TASK:TEMPFILES >'
 		print(f"{code} Running temp file deletion...")
 		try:
-			now = Common.current_timestamp()
+			now = Time.current_timestamp()
 			for path, directories, files in os.walk("./temp"):
 				for file in files:
 					pointer = os.path.join(path, file)
@@ -56,7 +56,7 @@ class Tasks(commands.Cog):
 		code = 'TASK:USERS >'
 		print(f"{code} Running users table cleanup...")
 		try:
-			self.database.execute("DELETE FROM Users WHERE xp <= 0 AND active <= ?", (Common.current_timestamp() - (60 * 60 * 24 * 30),))
+			self.database.execute("DELETE FROM Users WHERE xp <= 0 AND active <= ?", (Time.current_timestamp() - (60 * 60 * 24 * 30),))
 		except:
 			raise Exception(f"{code} Error with users table cleanup.")
 
@@ -67,8 +67,9 @@ class Tasks(commands.Cog):
 		try:
 			expiring_quests = self.database.quests.get_expiring()
 			for quest in expiring_quests:
+				print(quest.name)
 				try:
-					channel = await self.bot.fetch_channel(Common.QUEST_CHANNEL)
+					channel = await self.bot.fetch_channel(915359964158099456)
 					message = await channel.fetch_message(quest.id)
 					await message.delete()
 				except:

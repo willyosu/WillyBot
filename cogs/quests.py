@@ -1,21 +1,9 @@
 from discord.ext import commands
 from core.database import Connection, Types
-import core.common as Common
+from core.common import Data, Time, Embeds, Quest
 
 # cogs/quests.py
-# - (Quest) helper class for quest specific data
 # - (Quests) commands.Cog for quest related commands/listeners
-
-class Quest:
-	CHANNEL = 915359964158099456
-	TIERS = {
-		1: ("Easy", '🟢'), 
-		2: ("Normal", '🔵'),
-		3: ("Hard", '🟠'),
-		4: ("Insane", '🔴'), 
-		5: ("Extra", '🟣'),
-		6: ("Mythic", '⚫')
-	}
 
 class Quests(commands.Cog):
 	def __init__(self, bot):
@@ -26,14 +14,14 @@ class Quests(commands.Cog):
 	@commands.command(aliases=['lq', 'ql'],  description="List of currently active quests.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def listquests(self, context, page: int = 1) -> None:
-		offset, page_text = Common.paginate(page, length=self.database.quests.count_active())
+		offset, page_text = Data.paginate(page, length=self.database.quests.count_active())
 		quests = self.database.quests.get_active(offset=offset)
 		quest_string = []
 		for quest in quests:
 			tier_name, tier_icon = Quest.TIERS[quest.tier]
 			quest_string.append(f"**{tier_icon} {quest.name}** - expires <t:{quest.expires}:R>")
 
-		await context.reply(embed=Common.simple_embed(None, None, fields=[("List of active quests", '\n'.join(quest_string))], footer=page_text), mention_author=False)
+		await context.reply(embed=Embeds.simple_embed(None, None, fields=[("List of active quests", '\n'.join(quest_string))], footer=page_text), mention_author=False)
 
 	@commands.command(aliases=['quest', 'q'],  description="List information about a specified quest.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -44,7 +32,7 @@ class Quests(commands.Cog):
 			tier_name, tier_icon = Quest.TIERS[quest.tier]
 			difficulty_field = ("Difficulty", f"{tier_icon} {tier_name} ({quest.tier} QP)")
 			expires_field = ("Expires", f"<t:{quest.expires}:R>")
-			await context.reply(embed=Common.simple_embed(quest.name, quest.description, fields=[difficulty_field, expires_field]), mention_author=False)
+			await context.reply(embed=Embeds.simple_embed(quest.name, quest.description, fields=[difficulty_field, expires_field]), mention_author=False)
 		except:
 			await context.reply(f"Could not find quest.", mention_author=False)
 
@@ -56,7 +44,7 @@ class Quests(commands.Cog):
 			await context.reply("Could not understand quest tier.", mention_author=False)
 			return
 		tier = int(tier)
-		current_timestamp = Common.current_timestamp()
+		current_timestamp = Time.current_timestamp()
 		try:
 			if isinstance(expires, str):
 				expires = expires.strip()
@@ -85,7 +73,7 @@ class Quests(commands.Cog):
 		expires_field = ("Expires", f"<t:{expires}:R>")
 
 		channel = await self.bot.fetch_channel(Quest.CHANNEL)
-		message = await channel.send(embed=Common.simple_embed(name, description, fields=[difficulty_field, expires_field]))
+		message = await channel.send(embed=Embeds.simple_embed(name, description, fields=[difficulty_field, expires_field]))
 		
 		quest = Types.Quest(message.id, name, tier, description, expires)
 		try:
@@ -111,7 +99,7 @@ class Quests(commands.Cog):
 			
 			channel = await self.bot.fetch_channel(Quest.CHANNEL)
 			message = await channel.fetch_message(quest.id)
-			await message.edit(embed=Common.simple_embed(quest.name, quest.description, fields=[difficulty_field, expires_field]))
+			await message.edit(embed=Embeds.simple_embed(quest.name, quest.description, fields=[difficulty_field, expires_field]))
 			
 			await context.reply(f"Changed \"{attribute}\" of `ID:{quest.id}` to `{value}`.", mention_author=False)
 		except:
@@ -135,7 +123,7 @@ class Quests(commands.Cog):
 	@commands.command(aliases=['qp', 'qs'],  description="List information about a specified quest.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def queststats(self, context, identifier=None) -> None:
-		identifier = context.author.id if not identifier else Common.convert_mention(identifier)
+		identifier = context.author.id if not identifier else Data.convert_mention(identifier)
 		try:
 			user_id = self.database.users.search(identifier)
 			user = self.database.users.get(user_id)
@@ -148,7 +136,7 @@ class Quests(commands.Cog):
 					total_qp += user_quests[i] * (i)
 					user_quests_string.append(f"**{tier_icon} {tier_name}**  -  **{user_quests[i]}** ({user_quests[i] * (i)} QP)")
 				qp_rank = self.database.userquests.qp_rank(total_qp)
-				await context.reply(embed=Common.simple_embed(f"{user.name}", None, fields=[("Quest points", f"{total_qp} QP  **`#{qp_rank}`**"), (f"**{sum(user_quests[1:])} quests completed**", '\n'.join(user_quests_string))]), mention_author=False)
+				await context.reply(embed=Embeds.simple_embed(f"{user.name}", None, fields=[("Quest points", f"{total_qp} QP  **`#{qp_rank}`**"), (f"**{sum(user_quests[1:])} quests completed**", '\n'.join(user_quests_string))]), mention_author=False)
 			except:
 				await context.reply(f"User has not completed any quests.", mention_author=False)
 		except:
@@ -157,19 +145,19 @@ class Quests(commands.Cog):
 	@commands.command(aliases=['qlb', 'tq'],  description="List of highest QP users.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def topqp(self, context, page: int = 1) -> None:
-		offset, page_text = Common.paginate(page, length=self.database.userquests.count())
+		offset, page_text = Data.paginate(page, length=self.database.userquests.count())
 		user_qps = self.database.userquests.qp_ranking(offset=offset)
 		user_string = []
 		for user_id, count in user_qps:
 			offset += 1
 			user = self.database.users.get(user_id)
 			user_string.append(f"`#{offset}`  **{user.name}**  ({count:,})")
-		await context.reply(embed=Common.simple_embed(None, None, fields=[("List of highest qp users", '\n'.join(user_string))], footer=page_text), mention_author=False)
+		await context.reply(embed=Embeds.simple_embed(None, None, fields=[("List of highest qp users", '\n'.join(user_string))], footer=page_text), mention_author=False)
 
 	@commands.command(aliases=['aqp'], description="Add quest points to a specified user.")
 	@commands.is_owner()
 	async def addquestpoints(self, context, identifier, tier, amount = 1) -> None:
-		identifier = context.author.id if not identifier else Common.convert_mention(identifier)
+		identifier = context.author.id if not identifier else Data.convert_mention(identifier)
 		try:
 			user_id = self.database.users.search(identifier)
 			user = self.database.users.get(user_id)

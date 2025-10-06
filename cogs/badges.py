@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import File
 from core.database import Connection, Types
-import core.common as Common
+from core.common import Data, Embeds
 
 # cogs/badges.py
 # - (Badges) commands.Cog for user badge related commands/listeners
@@ -20,8 +20,8 @@ class Badges(commands.Cog):
 			badge = self.database.badges.get(badge_id)
 			user_list = self.database.userbadges.user_list(badge.id)
 			user_list = ', '.join([x[0] for x in user_list])
-			file = File(Common.BADGE_PATH + badge.image, filename="badge.png")
-			await context.reply(embed=Common.simple_embed(badge.name, f'*{badge.description}*', fields=[("Owned by", user_list)], image="attachment://badge.png" ), file=file, mention_author=False)
+			file = File(Data.BADGE_PATH + badge.image, filename="badge.png")
+			await context.reply(embed=Embeds.simple_embed(badge.name, f'*{badge.description}*', fields=[("Owned by", user_list)], image="attachment://badge.png" ), file=file, mention_author=False)
 		except:
 			await context.reply(f"Could not find badge.", mention_author=False)
 		
@@ -95,25 +95,25 @@ class Badges(commands.Cog):
 	@commands.command(aliases=['bl', 'badges', 'badgelist'],  description="List all awarded badges.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def listbadges(self, context, page: int = 1) -> None:
-		offset, page_text = Common.paginate(page, length=self.database.userbadges.count_badges())
+		offset, page_text = Data.paginate(page, length=self.database.userbadges.count_badges())
 		badge_counts = self.database.userbadges.badge_counts(offset=offset)
 		badge_string = []
 		for badge_id, count in badge_counts:
 			badge = self.database.badges.get(badge_id)
-			badge_string.append(f"- {badge.name} **({count:,})** \n-# *{Common.cutoff_text(badge.description, 52)}*")
-		await context.reply(embed=Common.simple_embed(None, None, fields=[("List of all awarded badges", '\n'.join(badge_string))], footer=page_text), mention_author=False)
+			badge_string.append(f"- {badge.name} **({count:,})** \n-# *{Data.cutoff_text(badge.description, 52)}*")
+		await context.reply(embed=Embeds.simple_embed(None, None, fields=[("List of all awarded badges", '\n'.join(badge_string))], footer=page_text), mention_author=False)
 	
 	@commands.command(aliases=['tb'],  description="List all awarded badges.")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def topbadges(self, context, page: int = 1, special: str = None) -> None:
-		offset, page_text = Common.paginate(page, length=self.database.userbadges.count_users())
+	async def topbadges(self, context, page: int = 1) -> None:
+		offset, page_text = Data.paginate(page, length=self.database.userbadges.count_users())
 		user_counts = self.database.userbadges.user_counts(offset=offset)
 		user_string = []
 		for user, count in user_counts:
 			offset += 1
 			user = self.database.users.get(user)
 			user_string.append(f"`#{offset}`  **{user.name}**  ({count:,})")
-		await context.reply(embed=Common.simple_embed(None, None, fields=[("List of most decorated users", '\n'.join(user_string))], footer=page_text), mention_author=False)
+		await context.reply(embed=Embeds.simple_embed(None, None, fields=[("List of most decorated users", '\n'.join(user_string))], footer=page_text), mention_author=False)
 			
 
 

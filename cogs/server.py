@@ -1,53 +1,11 @@
 from discord.ext import commands
 from discord import Status, Game, HTTPException
 from core.database import Connection
+from core.common import Roles
 import os
 
 # cogs/server.py
-# - (Roles) helper class for server role-specific ids
 # - (Server) commands.Cog for server and moderation related commands/listeners
-
-class Roles:
-
-	MOD = 759476878523236403
-	ADMIN = 105048534998388736
-
-	COLORS = {
-		"peach": 199890831027470338,
-		"very red": 1200643221722763294,
-		"red": 162264277888008193,
-		"dark red": 162280539263467531,
-		"poo brown": 338174388866383874,
-		"orange": 162278465737850880,
-		"dark orange": 1200643826126168115,
-		"yellow": 162278656977141761,
-		"very green": 273533854709579777,
-		"green": 162281118626742283,
-		"dark green": 162279043541106688,
-		"teal": 271794668033802240,
-		"very blue": 1200643369471332392,
-		"lighter blue": 284479508763901952,
-		"light blue": 162282900669202433,
-		"blue": 162279350220226560,
-		"dark blue": 162282183082508288,
-		"lavender": 336393327777939457,
-		"purple": 583733444325146626,
-		"dark purple": 162279642970062849,
-		"hot pink": 162280235142742017,
-		"light pink": 162283570545557505,
-		"pink": 335936596509458433,
-		"invisible": 251903540795146251,
-		"gray": 178132261089181696,
-		"white": 207542152396406785,
-		"black": 793587791644459019
-	}
-	NOTIFYS = {
-		"videos": 746326444023742465,
-		"streams": 746326084483547216,
-		"quests": 915359756300996648,
-		"minecraft": 1343357931034251345,
-		"willybot": 1200643238009253948
-	}
 
 class Server(commands.Cog):
 	def __init__(self, bot) -> None:

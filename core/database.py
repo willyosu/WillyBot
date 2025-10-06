@@ -1,5 +1,5 @@
 import sqlite3
-from core.common import current_timestamp
+from core.common import Time
 
 # core/database.py:
 # - (Connection) database connection/handler 
@@ -250,17 +250,17 @@ class Tables:
 		
 		# Custom
 		def count_active(self) -> int:
-			return self.connection.execute("SELECT COUNT(id) as count FROM Quests WHERE expires <= ?", (current_timestamp(),), fetch=1)
+			return self.connection.execute("SELECT COUNT(id) as count FROM Quests WHERE expires <= ?", (Time.current_timestamp(),), fetch=1)
 
 		def get_active(self, offset: int = 0, size: int = 10) -> list:
-			quests = self.connection.execute("SELECT * FROM Quests WHERE expires >= ? ORDER BY expires ASC LIMIT ? OFFSET ?", (current_timestamp(), size, offset), fetch=True)
+			quests = self.connection.execute("SELECT * FROM Quests WHERE expires >= ? ORDER BY expires ASC LIMIT ? OFFSET ?", (Time.current_timestamp(), size, offset), fetch=True)
 			results = []
 			for quest in quests:
 				results.append(Types.Quest(*quest))
 			return results
 
 		def get_expiring(self) -> list:
-			quests = self.connection.execute("SELECT * FROM Quests WHERE expires <= ? ORDER BY expires ASC", (current_timestamp() - (60 * 60 * 24),), fetch=True)
+			quests = self.connection.execute("SELECT * FROM Quests WHERE expires <= ? ORDER BY expires ASC", (Time.current_timestamp() - (60 * 60 * 24),), fetch=True)
 			results = []
 			for quest in quests:
 				results.append(Types.Quest(*quest))
