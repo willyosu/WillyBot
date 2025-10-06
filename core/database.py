@@ -253,7 +253,7 @@ class Tables:
 			return self.connection.execute("SELECT COUNT(id) as count FROM Quests WHERE expires <= ?", (current_timestamp(),), fetch=1)
 
 		def get_active(self, offset: int = 0, size: int = 10) -> list:
-			quests = self.connection.execute("SELECT * FROM Quests WHERE expires <= ? ORDER BY expires ASC LIMIT ? OFFSET ?", (current_timestamp(), size, offset), fetch=True)
+			quests = self.connection.execute("SELECT * FROM Quests WHERE expires >= ? ORDER BY expires ASC LIMIT ? OFFSET ?", (current_timestamp(), size, offset), fetch=True)
 			results = []
 			for quest in quests:
 				results.append(Types.Quest(*quest))
