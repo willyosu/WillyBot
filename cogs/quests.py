@@ -165,8 +165,9 @@ class Quests(commands.Cog):
 				await context.reply("Could not understand quest tier.", mention_author=False)
 				return
 			tier = int(tier)
-			user_quests = self.database.userquests.get(user.id)
-			if not user_quests:
+			try:
+				user_quests = self.database.userquests.get(user.id)
+			except:
 				self.database.userquests.create(user.id)
 				user_quests = (user_id, 0, 0, 0, 0, 0)
 			self.database.userquests.update(user.id, Quest.TIERS[tier][0].lower(), user_quests[tier] + amount)
